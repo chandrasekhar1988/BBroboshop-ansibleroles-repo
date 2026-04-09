@@ -1,0 +1,26 @@
+- name: reset redis module
+  ansible.builtin.command: dnf module reset redis -y
+  register: reset_out
+  changed_when: "'Resetting modules' in reset_out.stdout"
+
+- name: enable redis 6 module
+  ansible.builtin.command: dnf module enable redis:6 -y
+  register: enable_out
+  changed_when: "'Enabling module streams' in enable_out.stdout"
+
+- name: install redis package
+  ansible.builtin.dnf:
+    name: redis
+    state: present
+
+- name: allow remote connections
+  ansible.builtin.replace:
+    path: /etc/redis.conf
+    regexp: "127.0.0.1"
+    replace: "0.0.0.0"
+
+- name: start and enable redis
+  ansible.builtin.service:
+    name: redis
+    state: restarted
+    enabled: yes
